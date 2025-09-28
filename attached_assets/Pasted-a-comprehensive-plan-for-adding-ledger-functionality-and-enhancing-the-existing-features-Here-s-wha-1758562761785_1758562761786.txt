@@ -1,0 +1,111 @@
+a comprehensive plan for adding ledger functionality and enhancing the existing features. Here's what needs to be added and where:
+
+New Database Tables Required
+1. Chart of Accounts System:
+
+accounts table - for expense heads/subheads and all ledger accounts
+journalEntries table - for proper double-entry bookkeeping
+journalLines table - individual debit/credit entries
+2. Enhanced Expense Categories:
+
+Replace simple "category" text with hierarchical account structure
+Pages to Enhance
+1. Expense Management Page (ExpenseManagement.tsx)
+Current Issues: Basic category field, no hierarchical structure
+Enhancements Needed:
+
+Add expense heads and sub-heads selection (dropdown with parent-child categories)
+Add expense category management (add/edit heads and sub-heads)
+Enhanced filtering by heads and sub-heads
+Date range filtering (from-date to-date)
+Better reporting with expense head summaries
+2. Daily Reports Page (DailyReports.tsx)
+Current Issues: Only shows sales by payment method and basic expenses
+Enhancements Needed:
+
+Sales Summary: Detailed breakdown by product, payment method
+Purchase Summary: Purchase orders received, supplier payments
+Receivables: New customer credit sales, payments received
+Payables: New supplier purchases, payments made
+Cash Flow: Opening cash, receipts, payments, closing cash
+Tax Summary: GST collected, GST paid
+Bank/Card Reconciliation: Card settlements, bank deposits
+3. Customer Activity Page (NEW)
+Purpose: Complete customer transaction history
+Features Needed:
+
+Unified timeline showing all customer activities:
+Sales transactions (invoices)
+Payments received
+Credit adjustments
+Outstanding balances over time
+Date range filtering
+Export to PDF/Excel
+Print customer statements
+4. Accounts Receivable & Payable Pages
+Current Issues: Basic outstanding balance tracking
+Enhancements Needed:
+
+Ledger View Tab: Show detailed transaction history with running balance
+Date Range Filtering: View activity between specific dates
+Payment Posting: Proper ledger entries for all payments
+Credit/Debit Analysis: Clear tracking of what increases/decreases balance
+New Pages to Create
+1. General Ledger Page (NEW)
+Features:
+
+Chart of Accounts Manager: Add/edit account heads and sub-heads
+Journal Entry Viewer: View all accounting entries by date range
+Trial Balance: Ensure debits equal credits
+Account Ledger: Detailed view of any account with from/to dates
+Manual Adjustments: Add correction entries if needed
+2. Enhanced Financial Reports
+Current Issues: Basic profit/loss only
+New Reports Needed:
+
+Balance Sheet: Assets, liabilities, equity
+Cash Flow Statement: Operating, investing, financing activities
+Accounts Summary: All account balances by category
+Date Range Comparisons: This month vs last month, etc.
+Ledger Integration Points
+Every financial transaction will now create proper journal entries:
+
+Sales Transaction → Journal Entry:
+
+Debit: Cash/Card/Customer Account (based on payment method)
+Credit: Sales Revenue Account
+Credit: Tax Payable (if applicable)
+Purchase Order → Journal Entry:
+
+Debit: Inventory/Expense Account
+Credit: Cash/Supplier Account
+Expense Entry → Journal Entry:
+
+Debit: Selected Expense Head/Subhead
+Credit: Cash/Bank/Supplier Account
+Payment Received/Made → Journal Entry:
+
+Customer Payment: Debit Cash, Credit Customer Account
+Supplier Payment: Debit Supplier Account, Credit Cash
+Implementation Priority
+Phase 1: Foundation
+
+Add new database tables (accounts, journal entries, journal lines)
+Create Chart of Accounts management
+Update expense management with heads/subheads
+Phase 2: Ledger Integration
+
+Integrate journal posting with existing sales/purchase flows
+Enhance daily reports with comprehensive data
+Add ledger views to receivable/payable pages
+Phase 3: Advanced Features
+
+Create customer activity timeline page
+Add advanced financial reports
+Implement date range filtering across all pages
+Phase 4: Reporting & Analysis
+
+Add export/print functionality to all reports
+Create dashboard with key financial metrics
+Add comparative reporting (period over period)
+This approach will give you a complete accounting system with proper ledger functionality, detailed expense tracking with heads/subheads, comprehensive daily reports, and full customer activity tracking. The system will maintain double-entry accounting principles while integrating seamlessly with your existing petrol pump operations.

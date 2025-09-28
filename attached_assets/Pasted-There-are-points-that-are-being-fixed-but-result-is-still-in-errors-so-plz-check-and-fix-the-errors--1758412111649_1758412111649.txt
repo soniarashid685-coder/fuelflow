@@ -1,0 +1,11 @@
+There are points that are being fixed but result is still in errors so plz check and fix the errors, verify if its working by adding pointers or notifications however anything so that it is resolved for sure this time because i don't have much time and credit left to waste on some repetetive problems
+
+there is still extra space around menu button on collapsing and in small devices
+the add pump form is not working therefore i can't also verfy if the add reading form is working or not. So here fix it and add sample data using form to verify.
+create new purchase order form is still having errors making it unable to add purchase order due to some error in date field and the form popup close button is not working.
+the print screen appearance it fixed for purchase page but it is still opening in new tab for sales invoice as for purchase print screen the document being printed is empty
+In sale invoice the download using pdf and png is not working they are only opening invoice in new tab they must auto download as pdf for pdf option and as png for png option. Its the same for purchase invoice too.
+For both recievable and payable add form the customer field and supplier field should get both the customers and supplier data form customer and supplier page right now supplier payable form is only getting supplier data while the receiveable form is not even getting data from both.
+All the payment history action in all pages are opening the login page in new tab instead of creating a similar page like sale or purchase invoice containing all the history of the customer and supplier with print and download options ("a supploer can also be customer and a customer can also be a supplier").
+New user is not being generated the sign up form is working is working but on login credentials are wrong check it make sure the user fole system works perfectly also add an option for approval of new user in admin panel like when admin approves user can sign in or something better
+Also add a profile system in the app with station details that will be used on all invoices etc right now the station details are hardcoded with demo content

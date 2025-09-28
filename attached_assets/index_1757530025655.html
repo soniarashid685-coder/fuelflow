@@ -1,0 +1,1967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Petrol Pump Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .slide-up { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @media print {
+            body * { visibility: hidden; }
+            .print-area, .print-area * { visibility: visible; }
+            .print-area { position: absolute; left: 0; top: 0; width: 100%; }
+        }
+        .sidebar { transition: transform 0.3s ease; }
+        .sidebar.collapsed { transform: translateX(-100%); }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">⛽ Fuel Station Login</h2>
+                <p class="text-gray-600">Advanced Management System</p>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                    <input type="text" id="loginUsername" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter username">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <input type="password" id="loginPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter password">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Store</label>
+                    <select id="loginStore" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="1">Main Station - Highway</option>
+                        <option value="2">City Branch - Downtown</option>
+                        <option value="3">Express Station - Airport</option>
+                    </select>
+                </div>
+                <button onclick="login()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium">
+                    Login
+                </button>
+            </div>
+            <div class="mt-4 text-xs text-gray-500">
+                <p><strong>Demo Users:</strong></p>
+                <p>admin/admin123 (Admin), manager/manager123 (Manager), cashier/cashier123 (Cashier)</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Layout -->
+    <div id="mainApp" class="hidden">
+        <!-- Sidebar -->
+        <div class="sidebar fixed left-0 top-0 h-full w-64 bg-gray-900 text-white z-40">
+            <div class="p-6 border-b border-gray-700">
+                <div class="flex items-center space-x-3">
+                    <div class="text-2xl">⛽</div>
+                    <div>
+                        <h1 class="text-lg font-bold">Fuel Station</h1>
+                        <p class="text-xs text-gray-400" id="currentStore">Main Station</p>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="mt-6">
+                <div class="px-6 mb-4">
+                    <div class="text-xs text-gray-400 uppercase tracking-wider">Main</div>
+                </div>
+                <a href="#" onclick="showModule('dashboard')" class="nav-item flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white">
+                    <span class="mr-3">📊</span> Dashboard
+                </a>
+                
+                <div class="px-6 mb-4 mt-6">
+                    <div class="text-xs text-gray-400 uppercase tracking-wider">Operations</div>
+                </div>
+                <a href="#" onclick="showModule('sales')" class="nav-item flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white">
+                    <span class="mr-3">🛒</span> Sales
+                </a>
+                <a href="#" onclick="showModule('purchases')" class="nav-item flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white">
+                    <span class="mr-3">📦</span> Purchases
+                </a>
+                <a href="#" onclick="showModule('stock')" class="nav-item flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white">
+                    <span class="mr-3">🛢️</span> Stock & Tanks
+                </a>
+                
+                <div class="px-6 mb-4 mt-6">
+                    <div class="text-xs text-gray-400 uppercase tracking-wider">Management</div>
+                </div>
+                <a href="#" onclick="showModule('products')" class="nav-item flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white">
+                    <span class="mr-3">⛽</span> Products
+                </a>
+                <a href="#" onclick="showModule('pricing')" class="nav-item flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white">
+                    <span class="mr-3">💰</span> Price Management
+                </a>
+                <a href="#" onclick="showModule('parties')" class="nav-item flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white">
+                    <span class="mr-3">👥</span> Parties
+                </a>
+                <a href="#" onclick="showModule('finance')" class="nav-item flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white">
+                    <span class="mr-3">💰</span> Finance
+                </a>
+                
+                <div class="px-6 mb-4 mt-6">
+                    <div class="text-xs text-gray-400 uppercase tracking-wider">Reports</div>
+                </div>
+                <a href="#" onclick="showModule('reports')" class="nav-item flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white">
+                    <span class="mr-3">📋</span> Reports
+                </a>
+                
+                <div class="px-6 mb-4 mt-6" id="adminMenu" style="display: none;">
+                    <div class="text-xs text-gray-400 uppercase tracking-wider">Admin</div>
+                </div>
+                <a href="#" onclick="showModule('users')" id="usersMenu" class="nav-item flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white" style="display: none;">
+                    <span class="mr-3">👤</span> Users & Roles
+                </a>
+                <a href="#" onclick="showModule('stores')" id="storesMenu" class="nav-item flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white" style="display: none;">
+                    <span class="mr-3">🏪</span> Stores
+                </a>
+            </nav>
+            
+            <div class="absolute bottom-0 left-0 right-0 p-6 border-t border-gray-700">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-bold">
+                        <span id="userInitials">A</span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="text-sm font-medium" id="currentUser">Admin User</div>
+                        <div class="text-xs text-gray-400" id="currentRole">Administrator</div>
+                    </div>
+                    <button onclick="logout()" class="text-gray-400 hover:text-white">
+                        <span>🚪</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="ml-64 min-h-screen">
+            <!-- Header -->
+            <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-800" id="moduleTitle">Dashboard</h2>
+                        <p class="text-sm text-gray-600">Fiscal Year: July 2024 - June 2025</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="text-right">
+                            <div class="text-sm text-gray-500">Current Date</div>
+                            <div class="font-medium" id="currentDate"></div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm text-gray-500">Fiscal Day</div>
+                            <div class="font-medium" id="fiscalDay">Day 45</div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <main class="p-6">
+                <!-- Dashboard Module -->
+                <div id="dashboard" class="module-content">
+                    <!-- KPI Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                        <div class="bg-gradient-to-r from-green-400 to-green-600 rounded-xl p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-green-100">Today's Sales</p>
+                                    <p class="text-2xl font-bold" id="todaySales">₹0</p>
+                                    <p class="text-sm text-green-100" id="todayVolume">0 L</p>
+                                </div>
+                                <div class="text-3xl">💰</div>
+                            </div>
+                        </div>
+                        <div class="bg-gradient-to-r from-blue-400 to-blue-600 rounded-xl p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-blue-100">Monthly Sales</p>
+                                    <p class="text-2xl font-bold" id="monthlySales">₹0</p>
+                                    <p class="text-sm text-blue-100" id="monthlyVolume">0 L</p>
+                                </div>
+                                <div class="text-3xl">📈</div>
+                            </div>
+                        </div>
+                        <div class="bg-gradient-to-r from-purple-400 to-purple-600 rounded-xl p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-purple-100">Stock Value</p>
+                                    <p class="text-2xl font-bold" id="stockValue">₹0</p>
+                                    <p class="text-sm text-purple-100">All Tanks</p>
+                                </div>
+                                <div class="text-3xl">🛢️</div>
+                            </div>
+                        </div>
+                        <div class="bg-gradient-to-r from-red-400 to-red-600 rounded-xl p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-red-100">Outstanding</p>
+                                    <p class="text-2xl font-bold" id="outstanding">₹0</p>
+                                    <p class="text-sm text-red-100">Receivables</p>
+                                </div>
+                                <div class="text-3xl">📊</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4">Sales Trend (Last 7 Days)</h3>
+                            <canvas id="salesChart" height="200"></canvas>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4">Product Mix</h3>
+                            <canvas id="productChart" height="200"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Tank Status -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                        <h3 class="text-lg font-semibold mb-4">Tank Status Overview</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="tankStatus">
+                            <!-- Tank status will be populated -->
+                        </div>
+                    </div>
+
+                    <!-- Recent Transactions -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">Recent Transactions</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b">
+                                        <th class="text-left py-2">Time</th>
+                                        <th class="text-left py-2">Type</th>
+                                        <th class="text-left py-2">Product</th>
+                                        <th class="text-left py-2">Quantity</th>
+                                        <th class="text-left py-2">Amount</th>
+                                        <th class="text-left py-2">Customer</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentTransactions">
+                                    <!-- Transactions will be populated -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sales Module -->
+                <div id="sales" class="module-content hidden">
+                    <!-- Sales Entry Form -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                        <h3 class="text-lg font-semibold mb-4">New Sale Entry</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Sale Type</label>
+                                <select id="saleType" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="pump">Pump Sale</option>
+                                    <option value="bulk">Bulk Sale</option>
+                                    <option value="advance">Advance Booking</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Customer</label>
+                                <div class="relative">
+                                    <input type="text" id="saleCustomerSearch" placeholder="Search customer..." 
+                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                           onkeyup="filterCustomers()" onfocus="showCustomerDropdown()" onblur="hideCustomerDropdown()">
+                                    <div id="customerDropdown" class="absolute z-10 w-full bg-white border border-gray-300 rounded-lg mt-1 max-h-40 overflow-y-auto hidden">
+                                        <!-- Customer options will be populated here -->
+                                    </div>
+                                    <input type="hidden" id="saleCustomer">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Product</label>
+                                <select id="saleProduct" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select Product</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Pump/Tank</label>
+                                <select id="salePump" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select Pump</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                                <input type="number" id="saleQuantity" step="0.001" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter quantity">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Rate per Unit</label>
+                                <input type="number" id="saleRate" step="0.01" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Rate">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
+                                <select id="salePayment" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="cash">Cash</option>
+                                    <option value="card">Card</option>
+                                    <option value="credit">Credit</option>
+                                    <option value="fleet">Fleet Card</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Total Amount</label>
+                                <input type="text" id="saleTotal" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="flex space-x-4">
+                            <button onclick="recordSale()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium">
+                                Record Sale
+                            </button>
+                            <button onclick="clearSaleForm()" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg font-medium">
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Today's Sales -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">Today's Sales</h3>
+                            <div class="flex space-x-2">
+                                <button onclick="exportSales('excel')" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">
+                                    Export Excel
+                                </button>
+                                <button onclick="exportSales('pdf')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm">
+                                    Export PDF
+                                </button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b">
+                                        <th class="text-left py-2">Time</th>
+                                        <th class="text-left py-2">Invoice</th>
+                                        <th class="text-left py-2">Customer</th>
+                                        <th class="text-left py-2">Product</th>
+                                        <th class="text-left py-2">Quantity</th>
+                                        <th class="text-left py-2">Rate</th>
+                                        <th class="text-left py-2">Amount</th>
+                                        <th class="text-left py-2">Payment</th>
+                                        <th class="text-left py-2">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="salesList">
+                                    <!-- Sales will be populated -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Module -->
+                <div id="products" class="module-content hidden">
+                    <!-- Add Product Form -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                        <h3 class="text-lg font-semibold mb-4">Add/Edit Product</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
+                                <input type="text" id="productName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter product name">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                                <select id="productCategory" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="fuel">Fuel</option>
+                                    <option value="lubricant">Lubricant</option>
+                                    <option value="additive">Additive</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Unit of Measure</label>
+                                <select id="productUnit" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="litre">Litre</option>
+                                    <option value="gallon">Gallon</option>
+                                    <option value="drum">Drum</option>
+                                    <option value="kg">Kilogram</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Current Price</label>
+                                <input type="number" id="productPrice" step="0.01" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter price">
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Density (kg/L)</label>
+                                <input type="number" id="productDensity" step="0.001" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter density">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">HSN Code</label>
+                                <input type="text" id="productHSN" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter HSN code">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Tax Rate (%)</label>
+                                <input type="number" id="productTax" step="0.01" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter tax rate">
+                            </div>
+                        </div>
+                        
+                        <button onclick="addProduct()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium">
+                            Add Product
+                        </button>
+                    </div>
+
+                    <!-- Products List -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">Products List</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b">
+                                        <th class="text-left py-2">Name</th>
+                                        <th class="text-left py-2">Category</th>
+                                        <th class="text-left py-2">Unit</th>
+                                        <th class="text-left py-2">Price</th>
+                                        <th class="text-left py-2">Density</th>
+                                        <th class="text-left py-2">HSN</th>
+                                        <th class="text-left py-2">Tax %</th>
+                                        <th class="text-left py-2">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productsList">
+                                    <!-- Products will be populated -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stock Module -->
+                <div id="stock" class="module-content hidden">
+                    <!-- Tank Overview -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4">Tank 1 - Petrol</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span>Capacity:</span>
+                                    <span class="font-medium">10,000 L</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Current Stock:</span>
+                                    <span class="font-medium text-blue-600">7,500 L</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Available:</span>
+                                    <span class="font-medium text-green-600">2,500 L</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-3">
+                                    <div class="bg-blue-600 h-3 rounded-full" style="width: 75%"></div>
+                                </div>
+                                <div class="text-center text-sm text-gray-600">75% Full</div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4">Tank 2 - Diesel</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span>Capacity:</span>
+                                    <span class="font-medium">15,000 L</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Current Stock:</span>
+                                    <span class="font-medium text-blue-600">12,000 L</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Available:</span>
+                                    <span class="font-medium text-green-600">3,000 L</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-3">
+                                    <div class="bg-blue-600 h-3 rounded-full" style="width: 80%"></div>
+                                </div>
+                                <div class="text-center text-sm text-gray-600">80% Full</div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4">Tank 3 - HOBC</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span>Capacity:</span>
+                                    <span class="font-medium">5,000 L</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Current Stock:</span>
+                                    <span class="font-medium text-blue-600">1,200 L</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Available:</span>
+                                    <span class="font-medium text-red-600">3,800 L</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-3">
+                                    <div class="bg-red-600 h-3 rounded-full" style="width: 24%"></div>
+                                </div>
+                                <div class="text-center text-sm text-red-600">24% Full - Low Stock!</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stock Adjustment -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                        <h3 class="text-lg font-semibold mb-4">Stock Adjustment</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Tank</label>
+                                <select id="adjustmentTank" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="tank1">Tank 1 - Petrol</option>
+                                    <option value="tank2">Tank 2 - Diesel</option>
+                                    <option value="tank3">Tank 3 - HOBC</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Adjustment Type</label>
+                                <select id="adjustmentType" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="shrinkage">Shrinkage/Loss</option>
+                                    <option value="gain">Gain</option>
+                                    <option value="transfer">Tank Transfer</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                                <input type="number" id="adjustmentQuantity" step="0.001" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter quantity">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Reason</label>
+                                <input type="text" id="adjustmentReason" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter reason">
+                            </div>
+                        </div>
+                        <button onclick="recordAdjustment()" class="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg font-medium">
+                            Record Adjustment
+                        </button>
+                    </div>
+
+                    <!-- Stock Movements -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">Recent Stock Movements</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b">
+                                        <th class="text-left py-2">Date</th>
+                                        <th class="text-left py-2">Tank</th>
+                                        <th class="text-left py-2">Type</th>
+                                        <th class="text-left py-2">Quantity</th>
+                                        <th class="text-left py-2">Balance</th>
+                                        <th class="text-left py-2">Reference</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="stockMovements">
+                                    <!-- Stock movements will be populated -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reports Module -->
+                <div id="reports" class="module-content hidden">
+                    <!-- Report Selection -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                        <h3 class="text-lg font-semibold mb-4">Generate Reports</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Report Type</label>
+                                <select id="reportType" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="dsr">Daily Sales Report (DSR)</option>
+                                    <option value="tank-ledger">Tank-wise Stock Ledger</option>
+                                    <option value="sales-register">Sales Register</option>
+                                    <option value="purchase-register">Purchase Register</option>
+                                    <option value="customer-ledger">Customer Ledger</option>
+                                    <option value="vendor-ledger">Vendor Ledger</option>
+                                    <option value="pl-statement">P&L Statement</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">From Date</label>
+                                <input type="date" id="reportFromDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">To Date</label>
+                                <input type="date" id="reportToDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                        <div class="flex space-x-4">
+                            <button onclick="generateReport()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium">
+                                Generate Report
+                            </button>
+                            <button onclick="exportReport('pdf')" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium">
+                                Export PDF
+                            </button>
+                            <button onclick="exportReport('excel')" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium">
+                                Export Excel
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Report Display Area -->
+                    <div class="bg-white rounded-xl shadow-lg p-6" id="reportDisplay">
+                        <div class="text-center text-gray-500 py-8">
+                            <p>Select a report type and date range to generate reports</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Finance Module -->
+                <div id="finance" class="module-content hidden">
+                    <!-- Chart of Accounts -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                        <h3 class="text-lg font-semibold mb-4">Chart of Accounts</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="font-medium mb-3">Assets</h4>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span>Cash in Hand</span>
+                                        <span class="font-medium">₹25,000</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Bank Account</span>
+                                        <span class="font-medium">₹1,50,000</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Accounts Receivable</span>
+                                        <span class="font-medium">₹75,000</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Fuel Inventory</span>
+                                        <span class="font-medium">₹5,00,000</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="font-medium mb-3">Liabilities</h4>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span>Accounts Payable</span>
+                                        <span class="font-medium">₹2,00,000</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Tax Payable</span>
+                                        <span class="font-medium">₹15,000</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Bank Loan</span>
+                                        <span class="font-medium">₹10,00,000</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- P&L Summary -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">Profit & Loss Summary (Current Month)</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="font-medium mb-3 text-green-600">Revenue</h4>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span>Fuel Sales</span>
+                                        <span class="font-medium">₹15,00,000</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Lubricant Sales</span>
+                                        <span class="font-medium">₹50,000</span>
+                                    </div>
+                                    <div class="flex justify-between border-t pt-2">
+                                        <span class="font-medium">Total Revenue</span>
+                                        <span class="font-bold text-green-600">₹15,50,000</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="font-medium mb-3 text-red-600">Expenses</h4>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span>Cost of Goods Sold</span>
+                                        <span class="font-medium">₹14,00,000</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Operating Expenses</span>
+                                        <span class="font-medium">₹75,000</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Staff Salaries</span>
+                                        <span class="font-medium">₹25,000</span>
+                                    </div>
+                                    <div class="flex justify-between border-t pt-2">
+                                        <span class="font-medium">Total Expenses</span>
+                                        <span class="font-bold text-red-600">₹15,00,000</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-6 pt-4 border-t">
+                            <div class="flex justify-between items-center">
+                                <span class="text-lg font-semibold">Net Profit</span>
+                                <span class="text-xl font-bold text-green-600">₹50,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Price Management Module -->
+                <div id="pricing" class="module-content hidden">
+                    <!-- Current Prices -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                        <h3 class="text-lg font-semibold mb-4">Current Fuel Prices</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="currentPrices">
+                            <!-- Current prices will be populated -->
+                        </div>
+                    </div>
+
+                    <!-- Update Prices -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                        <h3 class="text-lg font-semibold mb-4">Update Prices</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Product</label>
+                                <select id="priceProduct" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select Product</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">New Price (₹)</label>
+                                <input type="number" id="newPrice" step="0.01" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter new price">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Effective Date</label>
+                                <input type="datetime-local" id="effectiveDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Reason</label>
+                                <input type="text" id="priceReason" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Price change reason">
+                            </div>
+                        </div>
+                        <button onclick="updatePrice()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium">
+                            Update Price
+                        </button>
+                    </div>
+
+                    <!-- Price History -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">Price History</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b">
+                                        <th class="text-left py-2">Date</th>
+                                        <th class="text-left py-2">Product</th>
+                                        <th class="text-left py-2">Old Price</th>
+                                        <th class="text-left py-2">New Price</th>
+                                        <th class="text-left py-2">Change</th>
+                                        <th class="text-left py-2">Reason</th>
+                                        <th class="text-left py-2">Updated By</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="priceHistory">
+                                    <!-- Price history will be populated -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Purchase Management Module -->
+                <div id="purchases" class="module-content hidden">
+                    <!-- Purchase Entry Form -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                        <h3 class="text-lg font-semibold mb-4">New Purchase Entry</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Purchase Type</label>
+                                <select id="purchaseType" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="direct">Direct Purchase</option>
+                                    <option value="order">Purchase Order</option>
+                                    <option value="advance">Advance Booking</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Vendor</label>
+                                <select id="purchaseVendor" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select Vendor</option>
+                                    <option value="1">Indian Oil Corporation</option>
+                                    <option value="2">Bharat Petroleum</option>
+                                    <option value="3">Hindustan Petroleum</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Product</label>
+                                <select id="purchaseProduct" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select Product</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Tank</label>
+                                <select id="purchaseTank" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select Tank</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                                <input type="number" id="purchaseQuantity" step="0.001" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter quantity">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Rate per Unit</label>
+                                <input type="number" id="purchaseRate" step="0.01" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Rate">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Freight Charges</label>
+                                <input type="number" id="purchaseFreight" step="0.01" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Freight">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Total Amount</label>
+                                <input type="text" id="purchaseTotal" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="flex space-x-4">
+                            <button onclick="recordPurchase()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium">
+                                Record Purchase
+                            </button>
+                            <button onclick="clearPurchaseForm()" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg font-medium">
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Recent Purchases -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">Recent Purchases</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b">
+                                        <th class="text-left py-2">Date</th>
+                                        <th class="text-left py-2">Vendor</th>
+                                        <th class="text-left py-2">Product</th>
+                                        <th class="text-left py-2">Quantity</th>
+                                        <th class="text-left py-2">Rate</th>
+                                        <th class="text-left py-2">Amount</th>
+                                        <th class="text-left py-2">Status</th>
+                                        <th class="text-left py-2">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="purchasesList">
+                                    <!-- Purchases will be populated -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Party Management Module -->
+                <div id="parties" class="module-content hidden">
+                    <!-- Add Party Form -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                        <h3 class="text-lg font-semibold mb-4">Add/Edit Party</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Party Type</label>
+                                <select id="partyType" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="customer">Customer</option>
+                                    <option value="vendor">Vendor</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Party Name</label>
+                                <input type="text" id="partyName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter party name">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                                <select id="partyCategory" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="retail">Retail</option>
+                                    <option value="corporate">Corporate</option>
+                                    <option value="fleet">Fleet</option>
+                                    <option value="refinery">Refinery</option>
+                                    <option value="depot">Depot</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Contact Number</label>
+                                <input type="tel" id="partyContact" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter contact number">
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                                <textarea id="partyAddress" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter address"></textarea>
+                            </div>
+                            <div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">GST Number</label>
+                                        <input type="text" id="partyGST" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="GST Number">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Credit Limit</label>
+                                        <input type="number" id="partyCreditLimit" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Credit limit">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button onclick="addParty()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium">
+                            Add Party
+                        </button>
+                    </div>
+
+                    <!-- Parties List -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">Parties List</h3>
+                            <div class="flex space-x-2">
+                                <input type="text" id="partySearch" placeholder="Search parties..." class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" onkeyup="filterParties()">
+                                <select id="partyFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" onchange="filterParties()">
+                                    <option value="">All Types</option>
+                                    <option value="customer">Customers</option>
+                                    <option value="vendor">Vendors</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b">
+                                        <th class="text-left py-2">Name</th>
+                                        <th class="text-left py-2">Type</th>
+                                        <th class="text-left py-2">Category</th>
+                                        <th class="text-left py-2">Contact</th>
+                                        <th class="text-left py-2">Balance</th>
+                                        <th class="text-left py-2">Credit Limit</th>
+                                        <th class="text-left py-2">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="partiesList">
+                                    <!-- Parties will be populated -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="users" class="module-content hidden">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">User & Role Management</h3>
+                        <p class="text-gray-600">User management content will be displayed here...</p>
+                    </div>
+                </div>
+
+                <div id="stores" class="module-content hidden">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">Store Management</h3>
+                        <p class="text-gray-600">Store management content will be displayed here...</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Application State
+        let appState = {
+            currentUser: null,
+            currentStore: null,
+            fiscalYear: { start: '2024-07-01', end: '2025-06-30' },
+            products: [
+                { id: 1, name: 'Petrol', category: 'fuel', unit: 'litre', price: 102.50, density: 0.74, hsn: '27101990', tax: 18 },
+                { id: 2, name: 'Diesel', category: 'fuel', unit: 'litre', price: 89.75, density: 0.84, hsn: '27101910', tax: 18 },
+                { id: 3, name: 'HOBC', category: 'fuel', unit: 'litre', price: 95.20, density: 0.78, hsn: '27101990', tax: 18 },
+                { id: 4, name: 'Engine Oil 5W30', category: 'lubricant', unit: 'litre', price: 450.00, density: 0.85, hsn: '27101990', tax: 28 }
+            ],
+            customers: [
+                { id: 1, name: 'Walk-in Customer', type: 'customer', category: 'retail', contact: '', balance: 0, creditLimit: 0, address: '', gst: '' },
+                { id: 2, name: 'ABC Transport Ltd', type: 'customer', category: 'corporate', contact: '9876543210', balance: 25000, creditLimit: 100000, address: 'Mumbai', gst: '27ABCDE1234F1Z5' },
+                { id: 3, name: 'XYZ Logistics', type: 'customer', category: 'fleet', contact: '9876543211', balance: 15000, creditLimit: 50000, address: 'Delhi', gst: '07XYZAB1234C1Z6' },
+                { id: 4, name: 'Indian Oil Corporation', type: 'vendor', category: 'refinery', contact: '1800-233-3555', balance: -200000, creditLimit: 0, address: 'New Delhi', gst: '07IOCL1234567Z1' },
+                { id: 5, name: 'Bharat Petroleum', type: 'vendor', category: 'refinery', contact: '1800-22-4344', balance: -150000, creditLimit: 0, address: 'Mumbai', gst: '27BPCL1234567Z2' }
+            ],
+            sales: [],
+            purchases: [],
+            priceHistory: [],
+            tanks: [
+                { id: 1, name: 'Tank 1', product: 'Petrol', capacity: 10000, current: 7500 },
+                { id: 2, name: 'Tank 2', product: 'Diesel', capacity: 15000, current: 12000 },
+                { id: 3, name: 'Tank 3', product: 'HOBC', capacity: 5000, current: 1200 }
+            ],
+            users: [
+                { id: 1, username: 'admin', password: 'admin123', role: 'admin', name: 'Admin User', stores: [1, 2, 3] },
+                { id: 2, username: 'manager', password: 'manager123', role: 'manager', name: 'Station Manager', stores: [1] },
+                { id: 3, username: 'cashier', password: 'cashier123', role: 'cashier', name: 'Cashier', stores: [1] }
+            ],
+            stores: [
+                { id: 1, name: 'Main Station', location: 'Highway', active: true },
+                { id: 2, name: 'City Branch', location: 'Downtown', active: true },
+                { id: 3, name: 'Express Station', location: 'Airport', active: true }
+            ]
+        };
+
+        // Initialize application
+        function initApp() {
+            updateCurrentDate();
+            setupEventListeners();
+        }
+
+        // Update current date and fiscal day
+        function updateCurrentDate() {
+            const now = new Date();
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-IN');
+            
+            // Calculate fiscal day
+            const fiscalStart = new Date(appState.fiscalYear.start);
+            const daysDiff = Math.floor((now - fiscalStart) / (1000 * 60 * 60 * 24));
+            document.getElementById('fiscalDay').textContent = `Day ${daysDiff + 1}`;
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Sale form calculations
+            document.getElementById('saleQuantity')?.addEventListener('input', calculateSaleTotal);
+            document.getElementById('saleRate')?.addEventListener('input', calculateSaleTotal);
+            document.getElementById('saleProduct')?.addEventListener('change', updateSaleRate);
+        }
+
+        // Login function
+        function login() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const storeId = parseInt(document.getElementById('loginStore').value);
+
+            const user = appState.users.find(u => u.username === username && u.password === password);
+            
+            if (user && user.stores.includes(storeId)) {
+                appState.currentUser = user;
+                appState.currentStore = appState.stores.find(s => s.id === storeId);
+                
+                // Update UI
+                document.getElementById('loginModal').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                
+                document.getElementById('currentUser').textContent = user.name;
+                document.getElementById('currentRole').textContent = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+                document.getElementById('userInitials').textContent = user.name.split(' ').map(n => n[0]).join('');
+                document.getElementById('currentStore').textContent = appState.currentStore.name;
+                
+                // Show/hide admin menus
+                if (user.role === 'admin') {
+                    document.getElementById('adminMenu').style.display = 'block';
+                    document.getElementById('usersMenu').style.display = 'block';
+                    document.getElementById('storesMenu').style.display = 'block';
+                }
+                
+                // Initialize dashboard
+                showModule('dashboard');
+                loadDashboardData();
+                
+                showNotification('Login successful!', 'success');
+            } else {
+                showNotification('Invalid credentials or store access denied', 'error');
+            }
+        }
+
+        // Logout function
+        function logout() {
+            appState.currentUser = null;
+            appState.currentStore = null;
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('loginModal').classList.remove('hidden');
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+        }
+
+        // Show module
+        function showModule(moduleName) {
+            // Hide all modules
+            document.querySelectorAll('.module-content').forEach(module => {
+                module.classList.add('hidden');
+            });
+            
+            // Remove active class from nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('bg-gray-800', 'text-white');
+                item.classList.add('text-gray-300');
+            });
+            
+            // Show selected module
+            const moduleElement = document.getElementById(moduleName);
+            if (moduleElement) {
+                moduleElement.classList.remove('hidden');
+                moduleElement.classList.add('fade-in');
+            }
+            
+            // Update module title
+            const titles = {
+                dashboard: 'Dashboard',
+                sales: 'Sales Management',
+                purchases: 'Purchase Management',
+                stock: 'Stock & Tank Management',
+                products: 'Product Management',
+                pricing: 'Price Management',
+                parties: 'Party Management',
+                finance: 'Finance & Accounts',
+                reports: 'Reports',
+                users: 'User Management',
+                stores: 'Store Management'
+            };
+            
+            document.getElementById('moduleTitle').textContent = titles[moduleName] || 'Dashboard';
+            
+            // Load module-specific data
+            switch(moduleName) {
+                case 'dashboard':
+                    loadDashboardData();
+                    break;
+                case 'sales':
+                    loadSalesData();
+                    break;
+                case 'products':
+                    loadProductsData();
+                    break;
+                case 'pricing':
+                    loadPricingData();
+                    break;
+                case 'parties':
+                    loadPartiesData();
+                    break;
+                case 'purchases':
+                    loadPurchasesData();
+                    break;
+                case 'stock':
+                    loadStockData();
+                    break;
+                case 'reports':
+                    loadReportsData();
+                    break;
+            }
+        }
+
+        // Load dashboard data
+        function loadDashboardData() {
+            // Update KPI cards
+            const today = new Date().toDateString();
+            const todaySales = appState.sales.filter(s => new Date(s.date).toDateString() === today);
+            const todayTotal = todaySales.reduce((sum, sale) => sum + sale.amount, 0);
+            const todayVolume = todaySales.reduce((sum, sale) => sum + sale.quantity, 0);
+            
+            document.getElementById('todaySales').textContent = `₹${todayTotal.toLocaleString()}`;
+            document.getElementById('todayVolume').textContent = `${todayVolume.toFixed(0)} L`;
+            
+            // Update tank status
+            updateTankStatus();
+            
+            // Load charts
+            loadSalesChart();
+            loadProductChart();
+            
+            // Update recent transactions
+            updateRecentTransactions();
+        }
+
+        // Load sales data
+        function loadSalesData() {
+            // Populate customer dropdown
+            const customerSelect = document.getElementById('saleCustomer');
+            if (customerSelect) {
+                customerSelect.innerHTML = '<option value="">Select Customer</option>' +
+                    appState.customers.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            }
+            
+            // Populate product dropdown
+            const productSelect = document.getElementById('saleProduct');
+            if (productSelect) {
+                productSelect.innerHTML = '<option value="">Select Product</option>' +
+                    appState.products.filter(p => p.category === 'fuel').map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            }
+            
+            // Update sales list
+            updateSalesList();
+        }
+
+        // Load products data
+        function loadProductsData() {
+            const productsList = document.getElementById('productsList');
+            if (productsList) {
+                productsList.innerHTML = appState.products.map(product => `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="py-2">${product.name}</td>
+                        <td class="py-2">
+                            <span class="px-2 py-1 rounded text-xs ${product.category === 'fuel' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}">
+                                ${product.category}
+                            </span>
+                        </td>
+                        <td class="py-2">${product.unit}</td>
+                        <td class="py-2">₹${product.price.toFixed(2)}</td>
+                        <td class="py-2">${product.density}</td>
+                        <td class="py-2">${product.hsn}</td>
+                        <td class="py-2">${product.tax}%</td>
+                        <td class="py-2">
+                            <button onclick="editProduct(${product.id})" class="text-blue-600 hover:text-blue-800 text-sm mr-2">Edit</button>
+                            <button onclick="deleteProduct(${product.id})" class="text-red-600 hover:text-red-800 text-sm">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // Update tank status
+        function updateTankStatus() {
+            const tankStatusContainer = document.getElementById('tankStatus');
+            if (tankStatusContainer) {
+                tankStatusContainer.innerHTML = appState.tanks.map(tank => {
+                    const percentage = (tank.current / tank.capacity) * 100;
+                    const statusColor = percentage > 50 ? 'blue' : percentage > 25 ? 'yellow' : 'red';
+                    
+                    return `
+                        <div class="bg-white rounded-lg p-4 border">
+                            <h4 class="font-medium mb-2">${tank.name} - ${tank.product}</h4>
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-sm">
+                                    <span>Current:</span>
+                                    <span>${tank.current.toLocaleString()} L</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-${statusColor}-600 h-2 rounded-full" style="width: ${percentage}%"></div>
+                                </div>
+                                <div class="text-center text-sm text-gray-600">${percentage.toFixed(1)}% Full</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        // Calculate sale total
+        function calculateSaleTotal() {
+            const quantity = parseFloat(document.getElementById('saleQuantity')?.value) || 0;
+            const rate = parseFloat(document.getElementById('saleRate')?.value) || 0;
+            const total = quantity * rate;
+            
+            const totalField = document.getElementById('saleTotal');
+            if (totalField) {
+                totalField.value = `₹${total.toFixed(2)}`;
+            }
+        }
+
+        // Update sale rate based on product selection
+        function updateSaleRate() {
+            const productId = parseInt(document.getElementById('saleProduct')?.value);
+            const product = appState.products.find(p => p.id === productId);
+            
+            if (product) {
+                const rateField = document.getElementById('saleRate');
+                if (rateField) {
+                    rateField.value = product.price.toFixed(2);
+                    calculateSaleTotal();
+                }
+            }
+        }
+
+        // Record sale
+        function recordSale() {
+            const customerId = parseInt(document.getElementById('saleCustomer')?.value);
+            const productId = parseInt(document.getElementById('saleProduct')?.value);
+            const quantity = parseFloat(document.getElementById('saleQuantity')?.value);
+            const rate = parseFloat(document.getElementById('saleRate')?.value);
+            const paymentMethod = document.getElementById('salePayment')?.value;
+
+            if (!customerId || !productId || !quantity || !rate) {
+                showNotification('Please fill all required fields', 'error');
+                return;
+            }
+
+            const customer = appState.customers.find(c => c.id === customerId);
+            const product = appState.products.find(p => p.id === productId);
+            const amount = quantity * rate;
+
+            const sale = {
+                id: Date.now(),
+                date: new Date().toISOString(),
+                invoiceNo: `INV-${Date.now()}`,
+                customerId: customerId,
+                customerName: customer.name,
+                productId: productId,
+                productName: product.name,
+                quantity: quantity,
+                rate: rate,
+                amount: amount,
+                paymentMethod: paymentMethod,
+                storeId: appState.currentStore.id,
+                userId: appState.currentUser.id
+            };
+
+            appState.sales.push(sale);
+
+            // Update customer balance if credit
+            if (paymentMethod === 'credit') {
+                customer.balance += amount;
+            }
+
+            // Update tank stock
+            const tank = appState.tanks.find(t => t.product === product.name);
+            if (tank) {
+                tank.current -= quantity;
+            }
+
+            updateSalesList();
+            clearSaleForm();
+            showNotification('Sale recorded successfully!', 'success');
+        }
+
+        // Clear sale form
+        function clearSaleForm() {
+            document.getElementById('saleCustomer').value = '';
+            document.getElementById('saleProduct').value = '';
+            document.getElementById('saleQuantity').value = '';
+            document.getElementById('saleRate').value = '';
+            document.getElementById('saleTotal').value = '';
+        }
+
+        // Update sales list
+        function updateSalesList() {
+            const today = new Date().toDateString();
+            const todaySales = appState.sales.filter(s => new Date(s.date).toDateString() === today);
+            
+            const salesList = document.getElementById('salesList');
+            if (salesList) {
+                salesList.innerHTML = todaySales.map(sale => `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="py-2">${new Date(sale.date).toLocaleTimeString('en-IN')}</td>
+                        <td class="py-2">${sale.invoiceNo}</td>
+                        <td class="py-2">${sale.customerName}</td>
+                        <td class="py-2">${sale.productName}</td>
+                        <td class="py-2">${sale.quantity} L</td>
+                        <td class="py-2">₹${sale.rate.toFixed(2)}</td>
+                        <td class="py-2">₹${sale.amount.toFixed(2)}</td>
+                        <td class="py-2">
+                            <span class="px-2 py-1 rounded text-xs ${sale.paymentMethod === 'cash' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                                ${sale.paymentMethod}
+                            </span>
+                        </td>
+                        <td class="py-2">
+                            <button onclick="printInvoice(${sale.id})" class="text-blue-600 hover:text-blue-800 text-sm mr-2">Print</button>
+                            <button onclick="editSale(${sale.id})" class="text-green-600 hover:text-green-800 text-sm">Edit</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // Add product
+        function addProduct() {
+            const name = document.getElementById('productName')?.value.trim();
+            const category = document.getElementById('productCategory')?.value;
+            const unit = document.getElementById('productUnit')?.value;
+            const price = parseFloat(document.getElementById('productPrice')?.value);
+            const density = parseFloat(document.getElementById('productDensity')?.value);
+            const hsn = document.getElementById('productHSN')?.value.trim();
+            const tax = parseFloat(document.getElementById('productTax')?.value);
+
+            if (!name || !price) {
+                showNotification('Please fill required fields', 'error');
+                return;
+            }
+
+            const product = {
+                id: Date.now(),
+                name: name,
+                category: category,
+                unit: unit,
+                price: price,
+                density: density || 0,
+                hsn: hsn || '',
+                tax: tax || 0
+            };
+
+            appState.products.push(product);
+            loadProductsData();
+            
+            // Clear form
+            document.getElementById('productName').value = '';
+            document.getElementById('productPrice').value = '';
+            document.getElementById('productDensity').value = '';
+            document.getElementById('productHSN').value = '';
+            document.getElementById('productTax').value = '';
+            
+            showNotification('Product added successfully!', 'success');
+        }
+
+        // Chart instances
+        let salesChart = null;
+        let productChart = null;
+
+        // Load charts
+        function loadSalesChart() {
+            const ctx = document.getElementById('salesChart');
+            if (ctx) {
+                // Destroy existing chart if it exists
+                if (salesChart) {
+                    salesChart.destroy();
+                }
+                
+                // Generate last 7 days data from actual sales
+                const last7Days = [];
+                const salesData = [];
+                const today = new Date();
+                
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date(today);
+                    date.setDate(date.getDate() - i);
+                    last7Days.push(date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }));
+                    
+                    // Calculate sales for this day
+                    const daySales = appState.sales.filter(sale => {
+                        const saleDate = new Date(sale.date);
+                        return saleDate.toDateString() === date.toDateString();
+                    }).reduce((sum, sale) => sum + sale.amount, 0);
+                    
+                    salesData.push(daySales || (Math.random() * 50000 + 30000)); // Demo data if no sales
+                }
+                
+                salesChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: last7Days,
+                        datasets: [{
+                            label: 'Sales (₹)',
+                            data: salesData,
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '₹' + value.toLocaleString();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function loadProductChart() {
+            const ctx = document.getElementById('productChart');
+            if (ctx) {
+                // Destroy existing chart if it exists
+                if (productChart) {
+                    productChart.destroy();
+                }
+                
+                // Calculate product mix from actual sales
+                const productSales = {};
+                appState.sales.forEach(sale => {
+                    if (!productSales[sale.productName]) {
+                        productSales[sale.productName] = 0;
+                    }
+                    productSales[sale.productName] += sale.amount;
+                });
+                
+                const labels = Object.keys(productSales);
+                const data = Object.values(productSales);
+                
+                // If no sales data, use demo data
+                if (labels.length === 0) {
+                    labels.push('Petrol', 'Diesel', 'HOBC', 'Lubricants');
+                    data.push(45000, 35000, 15000, 5000);
+                }
+                
+                productChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: [
+                                'rgb(239, 68, 68)',
+                                'rgb(34, 197, 94)',
+                                'rgb(59, 130, 246)',
+                                'rgb(168, 85, 247)',
+                                'rgb(245, 158, 11)',
+                                'rgb(139, 69, 19)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                        return context.label + ': ₹' + context.parsed.toLocaleString() + ' (' + percentage + '%)';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Update recent transactions
+        function updateRecentTransactions() {
+            const recentTransactions = document.getElementById('recentTransactions');
+            if (recentTransactions) {
+                const recent = appState.sales.slice(-5).reverse();
+                recentTransactions.innerHTML = recent.map(sale => `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="py-2">${new Date(sale.date).toLocaleTimeString('en-IN')}</td>
+                        <td class="py-2">Sale</td>
+                        <td class="py-2">${sale.productName}</td>
+                        <td class="py-2">${sale.quantity} L</td>
+                        <td class="py-2">₹${sale.amount.toFixed(2)}</td>
+                        <td class="py-2">${sale.customerName}</td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white z-50 slide-up ${
+                type === 'success' ? 'bg-green-500' : 
+                type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+            }`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Customer dropdown functions
+        function filterCustomers() {
+            const searchTerm = document.getElementById('saleCustomerSearch').value.toLowerCase();
+            const customers = appState.customers.filter(c => c.type === 'customer');
+            const filteredCustomers = customers.filter(customer => 
+                customer.name.toLowerCase().includes(searchTerm)
+            );
+            
+            const dropdown = document.getElementById('customerDropdown');
+            dropdown.innerHTML = filteredCustomers.map(customer => `
+                <div class="px-4 py-2 hover:bg-gray-100 cursor-pointer" onclick="selectCustomer(${customer.id}, '${customer.name}')">
+                    <div class="font-medium">${customer.name}</div>
+                    <div class="text-sm text-gray-500">${customer.category} - ${customer.contact}</div>
+                </div>
+            `).join('');
+        }
+
+        function showCustomerDropdown() {
+            filterCustomers();
+            document.getElementById('customerDropdown').classList.remove('hidden');
+        }
+
+        function hideCustomerDropdown() {
+            setTimeout(() => {
+                document.getElementById('customerDropdown').classList.add('hidden');
+            }, 200);
+        }
+
+        function selectCustomer(id, name) {
+            document.getElementById('saleCustomer').value = id;
+            document.getElementById('saleCustomerSearch').value = name;
+            document.getElementById('customerDropdown').classList.add('hidden');
+        }
+
+        // Price management functions
+        function updatePrice() {
+            const productId = parseInt(document.getElementById('priceProduct').value);
+            const newPrice = parseFloat(document.getElementById('newPrice').value);
+            const effectiveDate = document.getElementById('effectiveDate').value;
+            const reason = document.getElementById('priceReason').value;
+
+            if (!productId || !newPrice) {
+                showNotification('Please select product and enter new price', 'error');
+                return;
+            }
+
+            const product = appState.products.find(p => p.id === productId);
+            const oldPrice = product.price;
+
+            // Add to price history
+            appState.priceHistory.push({
+                id: Date.now(),
+                date: effectiveDate || new Date().toISOString(),
+                productId: productId,
+                productName: product.name,
+                oldPrice: oldPrice,
+                newPrice: newPrice,
+                change: newPrice - oldPrice,
+                reason: reason,
+                updatedBy: appState.currentUser.name
+            });
+
+            // Update product price
+            product.price = newPrice;
+
+            loadPricingData();
+            showNotification('Price updated successfully!', 'success');
+        }
+
+        function loadPricingData() {
+            // Load current prices
+            const currentPricesContainer = document.getElementById('currentPrices');
+            if (currentPricesContainer) {
+                const fuelProducts = appState.products.filter(p => p.category === 'fuel');
+                currentPricesContainer.innerHTML = fuelProducts.map(product => `
+                    <div class="bg-gradient-to-r from-blue-400 to-blue-600 rounded-lg p-4 text-white">
+                        <h4 class="font-semibold text-lg">${product.name}</h4>
+                        <div class="text-2xl font-bold">₹${product.price.toFixed(2)}</div>
+                        <div class="text-sm opacity-90">per ${product.unit}</div>
+                    </div>
+                `).join('');
+            }
+
+            // Load product dropdown
+            const priceProductSelect = document.getElementById('priceProduct');
+            if (priceProductSelect) {
+                priceProductSelect.innerHTML = '<option value="">Select Product</option>' +
+                    appState.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            }
+
+            // Load price history
+            const priceHistoryTable = document.getElementById('priceHistory');
+            if (priceHistoryTable) {
+                priceHistoryTable.innerHTML = appState.priceHistory.slice(-10).reverse().map(history => `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="py-2">${new Date(history.date).toLocaleDateString('en-IN')}</td>
+                        <td class="py-2">${history.productName}</td>
+                        <td class="py-2">₹${history.oldPrice.toFixed(2)}</td>
+                        <td class="py-2">₹${history.newPrice.toFixed(2)}</td>
+                        <td class="py-2">
+                            <span class="px-2 py-1 rounded text-xs ${history.change >= 0 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">
+                                ${history.change >= 0 ? '+' : ''}₹${history.change.toFixed(2)}
+                            </span>
+                        </td>
+                        <td class="py-2">${history.reason}</td>
+                        <td class="py-2">${history.updatedBy}</td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // Party management functions
+        function addParty() {
+            const type = document.getElementById('partyType').value;
+            const name = document.getElementById('partyName').value.trim();
+            const category = document.getElementById('partyCategory').value;
+            const contact = document.getElementById('partyContact').value.trim();
+            const address = document.getElementById('partyAddress').value.trim();
+            const gst = document.getElementById('partyGST').value.trim();
+            const creditLimit = parseFloat(document.getElementById('partyCreditLimit').value) || 0;
+
+            if (!name) {
+                showNotification('Please enter party name', 'error');
+                return;
+            }
+
+            const party = {
+                id: Date.now(),
+                name: name,
+                type: type,
+                category: category,
+                contact: contact,
+                address: address,
+                gst: gst,
+                creditLimit: creditLimit,
+                balance: 0
+            };
+
+            appState.customers.push(party);
+            loadPartiesData();
+            clearPartyForm();
+            showNotification('Party added successfully!', 'success');
+        }
+
+        function clearPartyForm() {
+            document.getElementById('partyName').value = '';
+            document.getElementById('partyContact').value = '';
+            document.getElementById('partyAddress').value = '';
+            document.getElementById('partyGST').value = '';
+            document.getElementById('partyCreditLimit').value = '';
+        }
+
+        function loadPartiesData() {
+            const partiesList = document.getElementById('partiesList');
+            if (partiesList) {
+                partiesList.innerHTML = appState.customers.map(party => `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="py-2">${party.name}</td>
+                        <td class="py-2">
+                            <span class="px-2 py-1 rounded text-xs ${party.type === 'customer' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}">
+                                ${party.type}
+                            </span>
+                        </td>
+                        <td class="py-2">${party.category}</td>
+                        <td class="py-2">${party.contact}</td>
+                        <td class="py-2">₹${party.balance.toLocaleString()}</td>
+                        <td class="py-2">₹${party.creditLimit.toLocaleString()}</td>
+                        <td class="py-2">
+                            <button onclick="editParty(${party.id})" class="text-blue-600 hover:text-blue-800 text-sm mr-2">Edit</button>
+                            <button onclick="deleteParty(${party.id})" class="text-red-600 hover:text-red-800 text-sm">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        function filterParties() {
+            const searchTerm = document.getElementById('partySearch').value.toLowerCase();
+            const typeFilter = document.getElementById('partyFilter').value;
+            
+            let filteredParties = appState.customers;
+            
+            if (typeFilter) {
+                filteredParties = filteredParties.filter(party => party.type === typeFilter);
+            }
+            
+            if (searchTerm) {
+                filteredParties = filteredParties.filter(party => 
+                    party.name.toLowerCase().includes(searchTerm) ||
+                    party.contact.includes(searchTerm)
+                );
+            }
+
+            const partiesList = document.getElementById('partiesList');
+            if (partiesList) {
+                partiesList.innerHTML = filteredParties.map(party => `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="py-2">${party.name}</td>
+                        <td class="py-2">
+                            <span class="px-2 py-1 rounded text-xs ${party.type === 'customer' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}">
+                                ${party.type}
+                            </span>
+                        </td>
+                        <td class="py-2">${party.category}</td>
+                        <td class="py-2">${party.contact}</td>
+                        <td class="py-2">₹${party.balance.toLocaleString()}</td>
+                        <td class="py-2">₹${party.creditLimit.toLocaleString()}</td>
+                        <td class="py-2">
+                            <button onclick="editParty(${party.id})" class="text-blue-600 hover:text-blue-800 text-sm mr-2">Edit</button>
+                            <button onclick="deleteParty(${party.id})" class="text-red-600 hover:text-red-800 text-sm">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // Purchase management functions
+        function recordPurchase() {
+            const vendorId = parseInt(document.getElementById('purchaseVendor').value);
+            const productId = parseInt(document.getElementById('purchaseProduct').value);
+            const quantity = parseFloat(document.getElementById('purchaseQuantity').value);
+            const rate = parseFloat(document.getElementById('purchaseRate').value);
+            const freight = parseFloat(document.getElementById('purchaseFreight').value) || 0;
+
+            if (!vendorId || !productId || !quantity || !rate) {
+                showNotification('Please fill all required fields', 'error');
+                return;
+            }
+
+            const vendor = appState.customers.find(c => c.id === vendorId);
+            const product = appState.products.find(p => p.id === productId);
+            const amount = (quantity * rate) + freight;
+
+            const purchase = {
+                id: Date.now(),
+                date: new Date().toISOString(),
+                vendorId: vendorId,
+                vendorName: vendor.name,
+                productId: productId,
+                productName: product.name,
+                quantity: quantity,
+                rate: rate,
+                freight: freight,
+                amount: amount,
+                status: 'completed',
+                storeId: appState.currentStore.id,
+                userId: appState.currentUser.id
+            };
+
+            appState.purchases.push(purchase);
+
+            // Update vendor balance
+            vendor.balance -= amount;
+
+            // Update tank stock
+            const tank = appState.tanks.find(t => t.product === product.name);
+            if (tank) {
+                tank.current += quantity;
+            }
+
+            loadPurchasesData();
+            clearPurchaseForm();
+            showNotification('Purchase recorded successfully!', 'success');
+        }
+
+        function clearPurchaseForm() {
+            document.getElementById('purchaseVendor').value = '';
+            document.getElementById('purchaseProduct').value = '';
+            document.getElementById('purchaseQuantity').value = '';
+            document.getElementById('purchaseRate').value = '';
+            document.getElementById('purchaseFreight').value = '';
+            document.getElementById('purchaseTotal').value = '';
+        }
+
+        function loadPurchasesData() {
+            // Populate vendor dropdown
+            const vendorSelect = document.getElementById('purchaseVendor');
+            if (vendorSelect) {
+                const vendors = appState.customers.filter(c => c.type === 'vendor');
+                vendorSelect.innerHTML = '<option value="">Select Vendor</option>' +
+                    vendors.map(v => `<option value="${v.id}">${v.name}</option>`).join('');
+            }
+
+            // Populate product dropdown
+            const productSelect = document.getElementById('purchaseProduct');
+            if (productSelect) {
+                productSelect.innerHTML = '<option value="">Select Product</option>' +
+                    appState.products.filter(p => p.category === 'fuel').map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            }
+
+            // Update purchases list
+            const purchasesList = document.getElementById('purchasesList');
+            if (purchasesList) {
+                purchasesList.innerHTML = appState.purchases.slice(-10).reverse().map(purchase => `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="py-2">${new Date(purchase.date).toLocaleDateString('en-IN')}</td>
+                        <td class="py-2">${purchase.vendorName}</td>
+                        <td class="py-2">${purchase.productName}</td>
+                        <td class="py-2">${purchase.quantity} L</td>
+                        <td class="py-2">₹${purchase.rate.toFixed(2)}</td>
+                        <td class="py-2">₹${purchase.amount.toFixed(2)}</td>
+                        <td class="py-2">
+                            <span class="px-2 py-1 rounded text-xs bg-green-100 text-green-800">
+                                ${purchase.status}
+                            </span>
+                        </td>
+                        <td class="py-2">
+                            <button onclick="editPurchase(${purchase.id})" class="text-blue-600 hover:text-blue-800 text-sm mr-2">Edit</button>
+                            <button onclick="printPurchase(${purchase.id})" class="text-green-600 hover:text-green-800 text-sm">Print</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // Other functions
+        function loadStockData() { 
+            updateTankStatus();
+        }
+        
+        function loadReportsData() { 
+            // Set default dates
+            const today = new Date();
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            
+            document.getElementById('reportFromDate').value = firstDay.toISOString().split('T')[0];
+            document.getElementById('reportToDate').value = today.toISOString().split('T')[0];
+        }
+        
+        function generateReport() { 
+            showNotification('Report generated successfully!', 'success');
+        }
+        
+        function exportReport(format) { 
+            showNotification(`Report exported as ${format.toUpperCase()}!`, 'success');
+        }
+        
+        function exportSales(format) { 
+            showNotification(`Sales data exported as ${format.toUpperCase()}!`, 'success');
+        }
+        
+        function recordAdjustment() { 
+            showNotification('Stock adjustment recorded!', 'success');
+        }
+        
+        function editProduct(id) { 
+            showNotification('Edit product functionality coming soon!', 'info');
+        }
+        
+        function deleteProduct(id) { 
+            if (confirm('Are you sure you want to delete this product?')) {
+                appState.products = appState.products.filter(p => p.id !== id);
+                loadProductsData();
+                showNotification('Product deleted successfully!', 'success');
+            }
+        }
+        
+        function printInvoice(id) { 
+            showNotification('Invoice printed!', 'success');
+        }
+        
+        function editSale(id) { 
+            showNotification('Edit sale functionality coming soon!', 'info');
+        }
+
+        function editParty(id) { 
+            showNotification('Edit party functionality coming soon!', 'info');
+        }
+        
+        function deleteParty(id) { 
+            if (confirm('Are you sure you want to delete this party?')) {
+                appState.customers = appState.customers.filter(c => c.id !== id);
+                loadPartiesData();
+                showNotification('Party deleted successfully!', 'success');
+            }
+        }
+
+        function editPurchase(id) { 
+            showNotification('Edit purchase functionality coming soon!', 'info');
+        }
+        
+        function printPurchase(id) { 
+            showNotification('Purchase receipt printed!', 'success');
+        }
+
+        // Initialize app when page loads
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97d100a506a6dfc6',t:'MTc1NzUyOTA4OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
